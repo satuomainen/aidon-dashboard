@@ -10,6 +10,10 @@ subscribe to all topics under a topic prefix. Anything received under the
 prefix is visualized as momentary values (latest value received) as well as
 a limited time series line graph for the last 10 received values.
 
+This screenshot illustrates what the momentary values dashboard looks like:
+
+![Dashboard screen shot](../doc/screenshot.png "Dashboard screen shot")
+
 ## Configure
 
 To conveniently populate the MQTT broker address and the topic prefix fields,
