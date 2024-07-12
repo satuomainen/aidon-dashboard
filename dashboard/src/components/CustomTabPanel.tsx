@@ -20,8 +20,8 @@ export function CustomTabPanel(props: Readonly<TabPanelProps>) {
             {...other}
         >
             {value === index && (
-                <Box sx={{ p: 3 }}>
-                    <Typography>{children}</Typography>
+                <Box sx={{ p: 3 }} className="ongelmia">
+                    <Typography component="div">{children}</Typography>
                 </Box>
             )}
         </div>

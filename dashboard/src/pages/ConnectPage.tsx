@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Paper, styled } from '@mui/material';
+import { Box, Button, Grid, Paper, styled, Typography } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import {
     MqttConnectionParameters,
@@ -7,8 +7,9 @@ import {
 } from '../mqtt/connectionParameters.tsx';
 import { TextInput } from '../components/TextInput.tsx';
 import { Toggle } from '../components/Toggle.tsx';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
+import { useState } from 'react';
 
 const emptyConnectionParameters: MqttConnectionParameters = {
     brokerUrl: '',
@@ -26,8 +27,9 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function ConnectPage() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const mqttCtx = useMqtt(); // useMqttContext();
+    const mqttCtx = useMqtt();
+    const [ connectionError, setConnectionError ] = useState<string>();
+
     const defaultValues = {
         ...emptyConnectionParameters,
         ...readConnectionParameters(),
@@ -45,20 +47,25 @@ export default function ConnectPage() {
         try {
             console.log('onConnect', config);
             await mqttCtx.connect(config.brokerUrl, config.topicPrefix);
+            setConnectionError(undefined);
             navigate('/dashboard');
         } catch (err) {
-            console.log('TODO: handle error', err);
+            setConnectionError(`Failed to connect: ${(err as Error).message}.`);
         }
     }
 
     return (
-        <Box>
+        <Box display="flex" flexDirection="column" justifyContent="center" height="100vh">
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(onConnect)}>
                     <Grid container spacing={1}>
-                        {location?.state?.error && (
+                        {connectionError && (
                             <Grid xs={12} item>
-                                <Item>Error: {location.state.error}</Item>
+                                <Item>
+                                    <Typography color='red'>
+                                        {connectionError}
+                                    </Typography>
+                                </Item>
                             </Grid>
                         )}
                         <Grid xs={12} item>

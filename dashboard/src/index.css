@@ -29,6 +29,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #eeeded;
+  background-origin: border-box;
+  background-image: url("assets/background.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 h1 {
