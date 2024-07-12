@@ -38,14 +38,11 @@ export default function ConnectPage() {
     const methods = useForm<MqttConnectionParameters>({ defaultValues });
 
     async function onConnect(config: MqttConnectionParameters) {
-        console.log('onConnect', config);
-
         if (config.rememberMe) {
             saveConnectionParameters(config);
         }
 
         try {
-            console.log('onConnect', config);
             await mqttCtx.connect(config.brokerUrl, config.topicPrefix);
             setConnectionError(undefined);
             navigate('/dashboard');
