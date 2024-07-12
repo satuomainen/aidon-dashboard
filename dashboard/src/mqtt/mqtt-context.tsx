@@ -242,6 +242,7 @@ export const MqttProvider = (props: MqttProviderProps) => {
                 type: HANDLERS.DISCONNECT,
             });
 
+            state.mqttClient.unsubscribe('#');
             state.mqttClient.end();
 
             console.log('disconnected from mqtt broker');

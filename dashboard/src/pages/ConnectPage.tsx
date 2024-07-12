@@ -3,11 +3,9 @@ import {
     Button,
     Card,
     FormControl,
-    FormControlLabel,
     Grid,
     Paper,
     styled,
-    Switch,
     Typography,
 } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -20,6 +18,7 @@ import { TextInput } from '../components/TextInput.tsx';
 import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
 import { useState } from 'react';
+import { Switch } from '../components/Switch.tsx';
 
 const emptyConnectionParameters: MqttConnectionParameters = {
     brokerUrl: '',
@@ -49,7 +48,6 @@ export default function ConnectPage() {
     };
 
     const methods = useForm<MqttConnectionParameters>({ defaultValues });
-    const rememberMe = methods.watch('rememberMe');
 
     async function onConnect(config: MqttConnectionParameters) {
         setConnecting(true);
@@ -85,11 +83,7 @@ export default function ConnectPage() {
                             <FormControl component="fieldset" variant="standard">
                                 <TextInput label="MQTT Broker URL" name="brokerUrl" required/>
                                 <TextInput label="Topic prefix" name="topicPrefix" required/>
-                                <FormControlLabel
-                                    control={<Switch defaultChecked={rememberMe} name="rememberMe" />}
-                                    label="Save values on this device"
-                                    sx={{marginBottom: 3}}
-                                />
+                                <Switch name="rememberMe" label="Save values on this device" />
                                 <Button
                                     disabled={connecting}
                                     variant="contained"

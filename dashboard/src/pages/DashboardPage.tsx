@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Typography } from '@mui/material';
+import {
+    BottomNavigation,
+    BottomNavigationAction,
+    Box,
+    Button,
+    Paper,
+    Typography,
+} from '@mui/material';
 import { CustomTabPanel } from '../components/CustomTabPanel.tsx';
 import { clearConnectionParameters } from '../mqtt/connectionParameters.tsx';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
@@ -9,17 +16,54 @@ import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
 import MeasurementPanel from '../components/MeasurementPanel.tsx';
 import DashboardHeading from '../components/DashboardHeading.tsx';
+import { MqttContextProviderProps } from '../mqtt/mqtt-context.tsx';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Switch } from '../components/Switch.tsx';
+
+interface DisconnectFormValues {
+    clearConfig: boolean;
+}
+
+function DisconnectTab({ mqtt }: { mqtt: MqttContextProviderProps }) {
+    const navigate = useNavigate();
+    const methods = useForm<DisconnectFormValues>({
+        defaultValues: { clearConfig: false },
+    });
+
+    function onDisconnect(values: DisconnectFormValues) {
+        if (values.clearConfig) {
+            clearConnectionParameters();
+        }
+
+        mqtt.disconnect();
+        navigate('/');
+    }
+
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onDisconnect)}>
+                <Paper>
+                    <Typography variant="h4" paddingTop={2} paddingBottom={1}>
+                        Really disconnect?
+                    </Typography>
+                    <Switch
+                        name="clearConfig"
+                        label="Clear saved connection values"
+                    />
+                    <Typography variant="body1" paddingBottom={2}>
+                        Are you sure you want to disconnect?
+                    </Typography>
+                    <Button variant="contained" type="submit" sx={{ marginBottom: 3 }}>Disconnect</Button>
+                </Paper>
+            </form>
+        </FormProvider>
+    );
+}
 
 export default function DashboardPage() {
-    const navigate = useNavigate();
     const [ tabNumber, setTabNumber ] = useState(1);
     const mqtt = useMqtt();
 
-    function onDisconnect() {
-        clearConnectionParameters();
-        mqtt.disconnect();
-        navigate('/', { replace: true });
-    }
 
     return (
         <>
@@ -32,18 +76,7 @@ export default function DashboardPage() {
                     <MeasurementPanel topics={Object.values(mqtt.topics).filter(({ unit }) => unit === 'A')}/>
                 </CustomTabPanel>
                 <CustomTabPanel value={tabNumber} index={3}>
-                    <Paper>
-                        <Typography variant="h4" paddingTop={2} paddingBottom={1}>
-                            Really disconnect?
-                        </Typography>
-                        <Typography variant="body1" paddingBottom={1}>
-                            Disconnecting will also clear your stored connection parameters.
-                        </Typography>
-                        <Typography variant="body1" paddingBottom={2}>
-                            Are you sure you want to disconnect?
-                        </Typography>
-                        <Button variant="contained" onClick={onDisconnect} sx={{marginBottom:3}}>Disconnect</Button>
-                    </Paper>
+                    <DisconnectTab mqtt={mqtt}/>
                 </CustomTabPanel>
 
             </Box>
