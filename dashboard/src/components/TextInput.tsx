@@ -17,6 +17,7 @@ export const TextInput = ({ name, label, required = false }: TextInputProps) => 
                          fieldState: { error },
                      }) => (
                 <TextField
+                    sx={{marginBottom: 3}}
                     helperText={error ? error.message : null}
                     size="small"
                     error={!!error}

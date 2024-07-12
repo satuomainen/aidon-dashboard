@@ -1,4 +1,15 @@
-import { Box, Button, Grid, Paper, styled, Typography } from '@mui/material';
+import {
+    Box,
+    Button,
+    Card,
+    FormControl,
+    FormControlLabel,
+    Grid,
+    Paper,
+    styled,
+    Switch,
+    Typography,
+} from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import {
     MqttConnectionParameters,
@@ -6,7 +17,6 @@ import {
     saveConnectionParameters,
 } from '../mqtt/connectionParameters.tsx';
 import { TextInput } from '../components/TextInput.tsx';
-import { Toggle } from '../components/Toggle.tsx';
 import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
 import { useState } from 'react';
@@ -14,7 +24,7 @@ import { useState } from 'react';
 const emptyConnectionParameters: MqttConnectionParameters = {
     brokerUrl: '',
     topicPrefix: '',
-    rememberMe: false, // TODO: change back to true
+    rememberMe: true,
 };
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -23,12 +33,15 @@ const Item = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(2),
     textAlign: 'center',
     color: theme.palette.text.secondary,
+    display: 'flex',
+    flexDirection: 'column',
 }));
 
 export default function ConnectPage() {
     const navigate = useNavigate();
     const mqttCtx = useMqtt();
     const [ connectionError, setConnectionError ] = useState<string>();
+    const [ connecting, setConnecting ] = useState(false);
 
     const defaultValues = {
         ...emptyConnectionParameters,
@@ -36,8 +49,10 @@ export default function ConnectPage() {
     };
 
     const methods = useForm<MqttConnectionParameters>({ defaultValues });
+    const rememberMe = methods.watch('rememberMe');
 
     async function onConnect(config: MqttConnectionParameters) {
+        setConnecting(true);
         if (config.rememberMe) {
             saveConnectionParameters(config);
         }
@@ -49,6 +64,7 @@ export default function ConnectPage() {
         } catch (err) {
             setConnectionError(`Failed to connect: ${(err as Error).message}.`);
         }
+        setConnecting(false);
     }
 
     return (
@@ -59,29 +75,30 @@ export default function ConnectPage() {
                         {connectionError && (
                             <Grid xs={12} item>
                                 <Item>
-                                    <Typography color='red'>
+                                    <Typography color="red">
                                         {connectionError}
                                     </Typography>
                                 </Item>
                             </Grid>
                         )}
-                        <Grid xs={12} item>
-                            <Item>
+                        <Card sx={{padding: 3}}>
+                            <FormControl component="fieldset" variant="standard">
                                 <TextInput label="MQTT Broker URL" name="brokerUrl" required/>
-                            </Item>
-                            <Item>
                                 <TextInput label="Topic prefix" name="topicPrefix" required/>
-                            </Item>
-                            <Item>
-                                <Toggle
+                                <FormControlLabel
+                                    control={<Switch defaultChecked={rememberMe} name="rememberMe" />}
                                     label="Save values on this device"
-                                    name="rememberMe"
+                                    sx={{marginBottom: 3}}
                                 />
-                            </Item>
-                            <Item>
-                                <Button color="secondary" type="submit">Start</Button>
-                            </Item>
-                        </Grid>
+                                <Button
+                                    disabled={connecting}
+                                    variant="contained"
+                                    type="submit"
+                                >
+                                    Connect
+                                </Button>
+                            </FormControl>
+                        </Card>
                     </Grid>
                 </form>
             </FormProvider>
