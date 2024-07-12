@@ -1,16 +1,22 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { readConnectionParameters } from '../mqtt/connection-store.tsx';
+import { useMqtt } from '../mqtt/use-mqtt.ts';
 
 export default function MainLayout() {
-    const params = readConnectionParameters();
-    const shouldConfigureConnectionParams = !params;
+    const mqttCtx = useMqtt();
 
-    if (shouldConfigureConnectionParams) {
-        console.log('gotta connect');
-        return <Navigate to="connect"/>;
+    if (mqttCtx.isConnected) {
+        return (
+            <>
+                <Navigate to="dashboard" replace/>
+                <Outlet/>
+            </>
+        );
     }
 
     return (
-        <Outlet/>
+        <>
+            <Navigate to="connect" replace/>
+            <Outlet/>
+        </>
     );
 }
