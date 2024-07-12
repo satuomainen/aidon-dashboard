@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import BoltIcon from '@mui/icons-material/Bolt';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Typography } from '@mui/material';
 import { CustomTabPanel } from '../components/CustomTabPanel.tsx';
 import { clearConnectionParameters } from '../mqtt/connectionParameters.tsx';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
+import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import PowerOffIcon from '@mui/icons-material/PowerOff';
 import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
@@ -55,7 +55,7 @@ export default function DashboardPage() {
                         setTabNumber(newValue);
                     }}
                 >
-                    <BottomNavigationAction value={1} label="Power" icon={<BoltIcon/>}/>
+                    <BottomNavigationAction value={1} label="Power" icon={<ElectricBoltIcon/>}/>
                     <BottomNavigationAction value={2} label="Currents" icon={<ElectricalServicesIcon/>}/>
                     <BottomNavigationAction value={3} label="Disconnect" icon={<PowerOffIcon/>}/>
                 </BottomNavigation>

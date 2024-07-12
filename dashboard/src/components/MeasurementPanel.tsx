@@ -12,6 +12,7 @@ export default function MeasurementPanel({ topics }: MeasurementPanelProps) {
             metric={topic.localization}
             unit={topic.unit ?? ''}
             value={topic.value ?? ''}
+            lastUpdated={topic.lastUpdated}
         />
     ));
 }

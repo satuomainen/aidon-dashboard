@@ -7,13 +7,14 @@ export interface Topic {
     localization: string;
     unit?: string;
     value?: string;
+    lastUpdated?: number;
 }
 
 interface State {
     isConnected: boolean;
     isSubscribed: boolean;
     mqttClient?: MqttClient;
-    topics: {[key: string]: Topic};
+    topics: { [key: string]: Topic };
 }
 
 const initialState: State = {
@@ -38,7 +39,7 @@ interface MessageAction {
     payload: MqttMessage;
 }
 
-interface MqttConnectAction  {
+interface MqttConnectAction {
     type: string;
     payload: MqttClient;
 }
@@ -54,7 +55,7 @@ const HANDLERS = {
 
 type HandlerFunction = (state: State, action: Action) => State;
 
-type HandlerMap = {[key: string]: HandlerFunction};
+type HandlerMap = { [key: string]: HandlerFunction };
 
 const handlers: HandlerMap = {
     [HANDLERS.CONNECT]: (state: State, action: Action) => {
@@ -190,7 +191,7 @@ export const MqttProvider = (props: MqttProviderProps) => {
                 }
 
                 mqttTopics
-                    .map(({name}) => `${topicPrefix}/sensor/${name}`)
+                    .map(({ name }) => `${topicPrefix}/sensor/${name}`)
                     .forEach(topic => mqttClient.subscribe(topic, (err) => {
                         if (err) {
                             console.log(`Failed to subscribe topic '${topic}'`, err.message);
@@ -206,7 +207,7 @@ export const MqttProvider = (props: MqttProviderProps) => {
                         return;
                     }
 
-                    const displayTopic = mqttTopics.find(({name}) => topic.endsWith(name));
+                    const displayTopic = mqttTopics.find(({ name }) => topic.endsWith(name));
                     if (!displayTopic) {
                         console.log('no display topic found for topic', topic);
                         return;
@@ -215,6 +216,7 @@ export const MqttProvider = (props: MqttProviderProps) => {
                     const message: Topic = {
                         ...displayTopic,
                         value: messageBuffer.toString(),
+                        lastUpdated: new Date().getTime(),
                     };
 
                     const payload: MqttMessage = {
@@ -232,7 +234,7 @@ export const MqttProvider = (props: MqttProviderProps) => {
             });
         });
 
-    }, [state.isConnected, state.isSubscribed]);
+    }, [ state.isConnected, state.isSubscribed ]);
 
     const disconnect = useCallback(() => {
         if (state.mqttClient) {
@@ -244,14 +246,14 @@ export const MqttProvider = (props: MqttProviderProps) => {
 
             console.log('disconnected from mqtt broker');
         }
-    }, [state.mqttClient]);
+    }, [ state.mqttClient ]);
 
     const mqttProviderValue = useMemo<MqttContextProviderProps>(() => ({
         isConnected: state.isConnected,
         topics: state.topics,
         connect,
         disconnect,
-    }), [state.isConnected, state.topics, connect, disconnect]);
+    }), [ state.isConnected, state.topics, connect, disconnect ]);
 
     return (
         <MqttContext.Provider value={mqttProviderValue}>
