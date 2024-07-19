@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMqtt } from '../mqtt/use-mqtt.ts';
 import MeasurementPanel from '../components/MeasurementPanel.tsx';
 import DashboardHeading from '../components/DashboardHeading.tsx';
-import { MqttContextProviderProps } from '../mqtt/mqtt-context.tsx';
+import { MqttContextProviderProps, Topic } from '../mqtt/mqtt-context.tsx';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Switch } from '../components/Switch.tsx';
 
@@ -24,7 +24,7 @@ interface DisconnectFormValues {
     clearConfig: boolean;
 }
 
-function DisconnectTab({ mqtt }: { mqtt: MqttContextProviderProps }) {
+function DisconnectTab({ mqtt }: Readonly<{ mqtt: MqttContextProviderProps }>) {
     const navigate = useNavigate();
     const methods = useForm<DisconnectFormValues>({
         defaultValues: { clearConfig: false },
@@ -60,20 +60,41 @@ function DisconnectTab({ mqtt }: { mqtt: MqttContextProviderProps }) {
     );
 }
 
+function getTopicsInOrder(topics: Topic[], namePartials: string[]): Topic[] {
+    const topicsInOrder: Topic[] = [];
+
+    namePartials.forEach(namePartial => {
+        const topic = topics.find(({ name }) => name.includes(namePartial));
+        if (topic) {
+            topicsInOrder.push(topic);
+        }
+    });
+
+    return topicsInOrder;
+}
+
 export default function DashboardPage() {
     const [ tabNumber, setTabNumber ] = useState(1);
     const mqtt = useMqtt();
+    const mqttTopics = Object.values(mqtt.topics);
 
+    const powerTopicsInOrder = getTopicsInOrder(
+        mqttTopics,
+        [ 'momentary_active_export', 'momentary_active_import' ]);
+
+    const currentTopicsInOrder = getTopicsInOrder(
+        mqttTopics,
+        [ 'current_phase_1', 'current_phase_2', 'current_phase_3' ]);
 
     return (
         <>
             <Box>
                 <DashboardHeading/>
                 <CustomTabPanel value={tabNumber} index={1}>
-                    <MeasurementPanel topics={Object.values(mqtt.topics).filter(({ unit }) => unit === 'kW')}/>
+                    <MeasurementPanel topics={powerTopicsInOrder}/>
                 </CustomTabPanel>
                 <CustomTabPanel value={tabNumber} index={2}>
-                    <MeasurementPanel topics={Object.values(mqtt.topics).filter(({ unit }) => unit === 'A')}/>
+                    <MeasurementPanel topics={currentTopicsInOrder}/>
                 </CustomTabPanel>
                 <CustomTabPanel value={tabNumber} index={3}>
                     <DisconnectTab mqtt={mqtt}/>
