@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useMemo, useReducer } from 'react';
 import type { MqttClient } from 'mqtt';
 import mqtt from 'mqtt';
+import { mqttTopics } from './mqtt-topic-config.ts';
 
 export interface Topic {
     name: string;
@@ -128,37 +129,6 @@ export const MqttContext = createContext<MqttContextProviderProps>({
     disconnect: () => undefined,
 });
 
-/**
- * Configure topics to subscribe and store in the state
- */
-export const mqttTopics: Topic[] = [
-    {
-        name: 'momentary_active_export/state',
-        localization: 'Active Export',
-        unit: 'kW',
-    },
-    {
-        name: 'momentary_active_import/state',
-        localization: 'Active Import',
-        unit: 'kW',
-    },
-    {
-        name: 'current_phase_1/state',
-        localization: 'Current L1',
-        unit: 'A',
-    },
-    {
-        name: 'current_phase_2/state',
-        localization: 'Current L2',
-        unit: 'A',
-    },
-    {
-        name: 'current_phase_3/state',
-        localization: 'Current L3',
-        unit: 'A',
-    },
-];
-
 export interface MqttProviderProps {
     children?: ReactNode;
 }
@@ -166,6 +136,36 @@ export interface MqttProviderProps {
 export const MqttProvider = (props: MqttProviderProps) => {
     const { children } = props;
     const [ state, dispatch ] = useReducer(reducer, initialState);
+
+    function handleMessage(topic: string, messageBuffer: Buffer) {
+        if (shouldDiscard(topic)) {
+            return;
+        }
+
+        const displayTopic = mqttTopics.find(({ name }) => topic.endsWith(name));
+        if (!displayTopic) {
+            console.log('no display topic found for topic', topic);
+            return;
+        }
+
+        const message: Topic = {
+            ...displayTopic,
+            value: messageBuffer.toString(),
+            lastUpdated: new Date().getTime(),
+        };
+
+        const payload: MqttMessage = {
+            topic,
+            value: message,
+        };
+
+        dispatch({
+            type: HANDLERS.HANDLE_MESSAGE,
+            payload,
+        });
+
+        console.log(`MQTT ${topic}: ${message.value}`);
+    }
 
     const connect = useCallback((brokerUrl: string, topicPrefix: string) => {
         console.log('mqtt connect...');
@@ -190,47 +190,25 @@ export const MqttProvider = (props: MqttProviderProps) => {
                     return resolve();
                 }
 
+                const failedTopics: string[] = [];
                 mqttTopics
                     .map(({ name }) => `${topicPrefix}/sensor/${name}`)
                     .forEach(topic => mqttClient.subscribe(topic, (err) => {
                         if (err) {
                             console.log(`Failed to subscribe topic '${topic}'`, err.message);
-                            return reject(err);
+                            failedTopics.push(topic);
+                        } else {
+                            console.log(`subscribed '${topic}'`);
                         }
-
-                        console.log(`subscribed '${topic}'`);
-                        return resolve();
                     }));
 
-                mqttClient.on('message', (topic, messageBuffer) => {
-                    if (shouldDiscard(topic)) {
-                        return;
-                    }
+                if (failedTopics.length > 0) {
+                    return reject(new Error(`Failed to subscribe: ${failedTopics.join(', ')}`));
+                }
 
-                    const displayTopic = mqttTopics.find(({ name }) => topic.endsWith(name));
-                    if (!displayTopic) {
-                        console.log('no display topic found for topic', topic);
-                        return;
-                    }
+                mqttClient.on('message', handleMessage);
 
-                    const message: Topic = {
-                        ...displayTopic,
-                        value: messageBuffer.toString(),
-                        lastUpdated: new Date().getTime(),
-                    };
-
-                    const payload: MqttMessage = {
-                        topic,
-                        value: message,
-                    };
-
-                    dispatch({
-                        type: HANDLERS.HANDLE_MESSAGE,
-                        payload,
-                    });
-
-                    console.log(`MQTT ${topic}: ${message.value}`);
-                });
+                return resolve();
             });
         });
 
