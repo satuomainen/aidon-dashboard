@@ -4,8 +4,6 @@ import {
     Card,
     FormControl,
     Grid,
-    Paper,
-    styled,
     Typography,
 } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -26,20 +24,10 @@ const emptyConnectionParameters: MqttConnectionParameters = {
     rememberMe: true,
 };
 
-const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-    display: 'flex',
-    flexDirection: 'column',
-}));
-
 export default function ConnectPage() {
     const navigate = useNavigate();
     const mqttCtx = useMqtt();
-    const [ connectionError, setConnectionError ] = useState<string>();
+    const [ connectionError, setConnectionError ] = useState<string | undefined>();
     const [ connecting, setConnecting ] = useState(false);
 
     const defaultValues = {
@@ -69,21 +57,13 @@ export default function ConnectPage() {
         <Box display="flex" flexDirection="column" justifyContent="center" height="100vh">
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(onConnect)}>
-                    <Grid container spacing={1}>
-                        {connectionError && (
-                            <Grid xs={12} item>
-                                <Item>
-                                    <Typography color="red">
-                                        {connectionError}
-                                    </Typography>
-                                </Item>
-                            </Grid>
-                        )}
-                        <Card sx={{padding: 3}}>
+                    <Grid container spacing={1} display="flex" flexDirection="column">
+                        <Card sx={{ padding: 3 }}>
                             <FormControl component="fieldset" variant="standard">
+                                <Typography variant="h5" sx={{paddingBottom: 3}}>Aidon HAN Readings</Typography>
                                 <TextInput label="MQTT Broker URL" name="brokerUrl" required/>
                                 <TextInput label="Topic prefix" name="topicPrefix" required/>
-                                <Switch name="rememberMe" label="Save values on this device" />
+                                <Switch name="rememberMe" label="Save values on this device"/>
                                 <Button
                                     disabled={connecting}
                                     variant="contained"
@@ -91,6 +71,11 @@ export default function ConnectPage() {
                                 >
                                     Connect
                                 </Button>
+                                {connectionError &&
+                                    <Typography sx={{ paddingTop: 2 }} color="red">
+                                        {connectionError}
+                                    </Typography>
+                                }
                             </FormControl>
                         </Card>
                     </Grid>
