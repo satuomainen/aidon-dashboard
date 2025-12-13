@@ -18,8 +18,8 @@ const Page = () => {
   const mqtt = useMqtt();
   const formik = useFormik({
     initialValues: {
-      brokerUrl: process.env.MQTT_BROKER_URL,
-      topic: process.env.MQTT_TOPIC_PREFIX,
+      brokerUrl: process.env.NEXT_PUBLIC_MQTT_BROKER_URL || '',
+      topic: process.env.NEXT_PUBLIC_MQTT_TOPIC_PREFIX || '',
       submit: null
     },
     validationSchema: Yup.object({
