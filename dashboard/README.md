@@ -22,8 +22,11 @@ you can configure the `.env` file to contain the defaults. Copy the provided
 configuration:
 
 ```
-MQTT_BROKER_URL=wss://broker.hivemq.com:8884/mqtt
-MQTT_TOPIC_PREFIX=yourTopicPrefix
+NEXT_PUBLIC_MQTT_BROKER_URL=wss://broker.hivemq.com:8884/mqtt
+NEXT_PUBLIC_MQTT_TOPIC_PREFIX=yourTopicPrefix
+
+# Optionally set the basepath if the app is not going to be installed in the root
+NEXT_PUBLIC_BASE_PATH=/dash
 ```
 
 ## Development server
@@ -36,14 +39,9 @@ npm run start
 
 ## Build for production
 
-Edit [`next.config.js`](./next.config.js) and adjust `basePath` as needed. The
-default value assumes the app is going to be installed into `/aidon` and not
-the root.
-
-Then say:
+To build:
 ```bash
 npm run build
-npm run export
 ```
 
 This will create a directory named `out`, which will contain the files that need
